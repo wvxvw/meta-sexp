@@ -47,21 +47,31 @@
                        :size (or end (length input))
                        :attachment attachment))
 
-(defmethod create-parser-context
-    ((input string-stream) &key buffer-size start end attachment)
+(defmethod create-parser-context ((input flexi-stream) &key start end attachment)
   (loop with out = (make-string-output-stream)
-        with buffer-size = (or buffer-size 8192)
-        with buf = (make-string buffer-size)
-        for pos = (read-sequence buf input :end buffer-size)
-        sum pos into size
-        until (zerop pos)
-        do (write-string buf out :end pos)
-        finally (return
-                  (create-parser-context
-                   (get-output-stream-string out)
-                   :start start
-                   :end (or end size)
-                   :attachment attachment))))
+     with buffer-size = 8192
+     with buf = (make-string buffer-size)
+     for pos = (read-sequence buf input :end buffer-size)
+     sum pos into size
+     until (zerop pos)
+     do (write-string buf out :end pos)
+     finally (return
+               (create-parser-context
+                (get-output-stream-string out)
+                :start start
+                :end (or end size)
+                :attachment attachment))))
+
+(defmethod create-parser-context
+    ((input stream) &key (external-format :latin1)
+                      (start 0) end attachment)
+  (create-parser-context
+   (make-flexi-stream input
+                      :element-type 'character
+                      :external-format external-format
+                      :position start)
+   :end end
+   :attachment attachment))
 
 (declaim (inline peek-atom))
 (defun peek-atom (ctx)

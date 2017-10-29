@@ -39,6 +39,7 @@
 (asdf:defsystem :meta-sexp
   :serial t
   :version +meta-sexp-version+
+  :depends-on (:flexi-streams)
   :components ((:file "packages")
                (:file "util")
                (:file "meta-sexp")
